@@ -1,0 +1,25 @@
+{
+  "tasks": [
+    {
+      "type": "theory",
+      "complexity": 0,
+      "question": "What is the name of big man?",
+      "answer": "Elone Mask",
+      "variants": ["blakabul", "pukpuk"]
+    },
+    {
+      "type": "theory",
+      "complexity": 0,
+      "question": "What is the name of big man?",
+      "answer": "Elone Mask",
+      "variants": ["blakabul", "pukpuk"]
+    },
+    {
+      "type": "theory",
+      "complexity": 1,
+      "question": "What is the name of big man?",
+      "answer": "Elone Mask",
+      "variants": ["blakabul", "pukpuk"]
+    }
+  ]
+}
