@@ -1,6 +1,15 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
+import 'dart:io';
 
-import 'tasks.dart';
+import 'package:audioplayers/audio_cache.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:first_app/pages/tasks.dart';
+import 'package:first_app/pages/videoplayer.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart';
+import 'package:path_provider/path_provider.dart';
+
+import 'player_widget.dart';
 
 class MyHome extends StatefulWidget {
   @override
@@ -18,6 +27,8 @@ class MyHomeState extends State<MyHome> {
 
   int currentStep = 0;
   String result = "";
+  String localFilePath = "";
+
   @override
   Widget build(BuildContext context) {
     List<Text> complexities = <Text>[
@@ -47,7 +58,46 @@ class MyHomeState extends State<MyHome> {
       return column;
     }
 
+    String localAsset = 'https://luan.xyz/files/audio/ambient_c_motion.mp3';
+
+    Future _loadFile() async {
+      final bytes = await readBytes(localAsset);
+      final dir = await getApplicationDocumentsDirectory();
+      final file = new File('${dir.path}/audio.mp3');
+
+      await file.writeAsBytes(bytes);
+      if (await file.exists()) {
+        setState(() {
+          localFilePath = file.path;
+        });
+      }
+    }
+
+    Widget _btn(String txt, VoidCallback onPressed) {
+      return ButtonTheme(
+          minWidth: 48.0,
+          child: RaisedButton(child: Text(txt), onPressed: onPressed));
+    }
+
+    Widget localFile() {
+      return Column(children: <Widget>[
+        _btn('Download File to your Device', () => _loadFile()),
+        Text('Current local file path: $localFilePath'),
+        localFilePath == null
+            ? Container()
+            : PlayerWidget(url: localFilePath, isLocal: true),
+      ]);
+    }
+
     List<Step> mySteps = [
+      new Step(
+          title: new Text("Listen audio"),
+          content: localFile(),
+          isActive: true),
+      new Step(
+          title: new Text("Watch video"),
+          content: new VideoPlayerScreen(),
+          isActive: true),
       new Step(
           title: new Text("Choose the type of task"),
           content: new Column(
@@ -106,12 +156,12 @@ class MyHomeState extends State<MyHome> {
           color: Colors.lightBlue[50],
           onPressed: () {
             Navigator.of(context).push(new MaterialPageRoute(
-                builder: (BuildContext context) =>
-                    new TasksPage(complexities[_radComplex].data)));
+                builder: (BuildContext context) => new TasksPage(
+                    types[_radType].data, complexities[_radComplex].data)));
           },
           splashColor: Colors.blueGrey,
           child: new Text(
-            "START",
+            "GO",
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
           ),
         )

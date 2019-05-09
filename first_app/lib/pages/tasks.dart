@@ -1,30 +1,147 @@
+import 'dart:io';
+
+import 'package:first_app/models/abstract/task.dart';
+import 'package:first_app/models/practicalTask.dart';
 import 'package:first_app/models/theoreticalTask.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'dart:math';
+import 'package:path_provider/path_provider.dart';
 
-class TasksPage extends StatelessWidget {
-  final String injectedData;
+class TasksPage extends StatefulWidget {
+  final String type;
+  final String complexity;
 
-  TasksPage(this.injectedData);
+  TasksPage(this.type, this.complexity);
+  @override
+  TasksPageState createState() =>
+      new TasksPageState(this.type, this.complexity);
+}
+
+class TasksPageState extends State<TasksPage> {
+  TasksPageState(this.complexity, this.type);
+
+  final String complexity;
+  final String type;
+
+  File jsonFile;
+  String question = "";
+  String fileName = "tasks.json";
+  bool fileExists = false;
+  Map<String, String> fileContent;
+  Directory dir;
+  void createFile(Map<String, String> content, Directory dir, String fileName) {
+    print("Creating file!");
+    File file = new File(dir.path + "/" + fileName);
+    file.createSync();
+    fileExists = true;
+    file.writeAsStringSync(json.encode(content));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    var jsonFile = new File("../../data/tasks.json");
+    fileExists = jsonFile.existsSync();
+    /*to store files temporary we use getTemporaryDirectory() but we need
+    permanent storage so we use getApplicationDocumentsDirectory() */
+    getApplicationDocumentsDirectory().then((Directory directory) {
+      dir = directory;
+      jsonFile = new File(directory.path);
+      fileExists = jsonFile.existsSync();
+      if (fileExists)
+        this.setState(
+            () => fileContent = json.decode(jsonFile.readAsStringSync()));
+    });
+  }
+
+  void writeToFile(Task task) {
+    var jsonFile = new File("./data/tasks.json");
+    fileExists = jsonFile.existsSync();
+    print("Writing to file!");
+    Map<String, String> content = {task.question: task.answer};
+    if (fileExists) {
+      print("File exists");
+      Map<String, String> jsonFileContent =
+          json.decode(jsonFile.readAsStringSync());
+      jsonFileContent.addAll(content);
+      jsonFile.writeAsStringSync(json.encode(jsonFileContent));
+    } else {
+      print("File does not exist!");
+      createFile(content, dir, fileName);
+    }
+    this.setState(() => fileContent = json.decode(jsonFile.readAsStringSync()));
+    print(fileContent);
+  }
 
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      appBar: new AppBar(title: new Text(injectedData)),
-      body: new Center(
+      appBar: new AppBar(title: new Text("TeachUp")),
+      body: new Container(
         child: new Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
+            // crossAxisAlignment: CrossAxisAlignment.center,
+            // mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              new Text("Complexity level: " + injectedData,
+              new Text("Type of task: " + type,
                   textAlign: TextAlign.center,
-                  style: new TextStyle(fontSize: 20.0))
+                  style: new TextStyle(fontSize: 20.0)),
+              new Text("Complexity level: " + complexity,
+                  textAlign: TextAlign.center,
+                  style: new TextStyle(fontSize: 20.0)),
+              Expanded(
+                  child: TextField(
+                      textAlign: TextAlign.center,
+                      decoration: InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'Please enter a question'),
+                      onChanged: (String str) {
+                        setState(() {
+                          question = str;
+                        });
+                      })),
+              new MaterialButton(
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                minWidth: double.infinity,
+                color: Colors.lightBlue[50],
+                onPressed: () => () {
+                      var entity = new PracticalTask(
+                          answer: question, question: question);
+                      writeToFile(entity);
+                    },
+                splashColor: Colors.blueGrey,
+                child: new Text(
+                  "SAVE",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                ),
+              )
             ]),
       ),
     );
   }
 }
+// class TasksPage extends StatelessWidget {
+//   final String injectedData;
+
+//   TasksPage(this.injectedData);
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return new Scaffold(
+//       appBar: new AppBar(title: new Text(injectedData)),
+//       body: new Center(
+//         child: new Column(
+//             crossAxisAlignment: CrossAxisAlignment.center,
+//             mainAxisAlignment: MainAxisAlignment.center,
+//             children: <Widget>[
+//               new Text("Complexity level: " + injectedData,
+//                   textAlign: TextAlign.center,
+//                   style: new TextStyle(fontSize: 20.0))
+//             ]),
+//       ),
+//     );
+//   }
+// }
 // class TasksPage extends StatefulWidget {
 //   final String pageText;
 //   TasksPage(this.pageText);
